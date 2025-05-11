@@ -10,7 +10,7 @@
 #include "freertos/semphr.h"
 #include "esp_adc/adc_continuous.h"
 #include "math.h"
-#include "ST7789_Display.h"
+#include "OLED.h"
 
 void continuous_adc_init(void);
 void adc_read_task(void *pvParameters);
