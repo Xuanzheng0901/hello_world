@@ -86,6 +86,9 @@ static void app_lvgl_init(void)
 static lv_color_t canvas_buf[280*220];
 
 static lv_obj_t *canvas = NULL;
+static lv_layer_t layer;
+static lv_draw_line_dsc_t dsc;
+
 void lv_example_canvas_board(void)
 {
     canvas = lv_canvas_create(lv_scr_act());
@@ -93,6 +96,14 @@ void lv_example_canvas_board(void)
     lv_canvas_set_buffer(canvas, canvas_buf, 320, 240, LV_COLOR_FORMAT_RGB565);
     lv_obj_align(canvas, LV_ALIGN_CENTER, 0, 0);
     lv_canvas_fill_bg(canvas, lv_color_hex(0x000000), LV_OPA_COVER);
+    lv_canvas_init_layer(canvas, &layer);
+    lv_draw_line_dsc_init(&dsc);
+    
+    dsc.width = 2;
+    dsc.round_end = 0;
+    dsc.round_start = 0;
+    dsc.p1.y = 0;
+    dsc.opa = LV_OPA_COVER;
 }
 
 void Screen_Init(void)
@@ -115,24 +126,15 @@ void canvas_print(uint8_t index, uint32_t data)
     index *= 2;
     if(lvgl_port_lock(0))
     {
-        for(int i = 0; i < 256; i++)
-        {
-            lv_canvas_set_px(
-                canvas,
-                32 + index,
-                i,
-                i > data ? lv_color_make(0, 0, 0) : lv_color_make(0, 255, 0),
-                LV_OPA_COVER
-            );
-            lv_canvas_set_px(
-                canvas,
-                32 + index + 1,
-                i,
-                i > data ? lv_color_make(0, 0, 0) : lv_color_make(0, 255, 0),
-                LV_OPA_COVER
-            );
-        }
+        dsc.color = lv_color_black();
+        dsc.p1.x = 32+index;
+        dsc.p2.x = 32+index;
+        dsc.p2.y = 240;
+        lv_draw_line(&layer, &dsc);
+        dsc.color = lv_palette_main(LV_PALETTE_BLUE);
+        dsc.p2.y = data;
+        lv_draw_line(&layer, &dsc);
+        lv_canvas_finish_layer(canvas, &layer);
         lvgl_port_unlock();
     }
 }
-

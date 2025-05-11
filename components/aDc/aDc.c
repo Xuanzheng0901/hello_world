@@ -22,7 +22,7 @@ void continuous_adc_init(void)
     };
 
     adc_continuous_config_t dig_cfg = {
-        .sample_freq_hz = 1024,
+        .sample_freq_hz = 10*1024,
         // 需要128个平均值数据(每位一个) 取8个数据的平均值 每帧显示1024个数据 帧率20 每秒20480个数据 转换速度20k
         .conv_mode = ADC_CONV_SINGLE_UNIT_1,
         .format = ADC_DIGI_OUTPUT_FORMAT_TYPE2,
@@ -46,7 +46,7 @@ void adc_read_task(void *pvParameters)
         
     while(1)
     {
-        vTaskDelay(300);
+        //vTaskDelay(50);
         uint32_t ret_num = 0;
         //static char str[128];
         /** ret_num: 转换到buffer中的字节数 
