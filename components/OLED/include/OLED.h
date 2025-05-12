@@ -7,8 +7,8 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 
-#define SCL 18
-#define SDA 8
+#define SCL 6
+#define SDA 5
 
 void OLED_Init(void);
 void OLED_Clear(void);

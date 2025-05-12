@@ -1,7 +1,7 @@
 #include "aDc.h"
 
 #define READ_LEN  4096
-#define CONF_ADC_CHANNEL    ADC_CHANNEL_4
+#define CONF_ADC_CHANNEL    ADC_CHANNEL_1
 
 adc_continuous_handle_t adc_audio_handle = NULL;
 adc_continuous_handle_t adc_current_handle = NULL;
@@ -57,7 +57,6 @@ void adc_read_task(void *pvParameters)
                 temp_sum /= 60.0;
                 OLED_Point(i, 64-temp_sum);
             }
-            
         }
         if(read_count++ >= 2)
             vTaskDelay(1);
