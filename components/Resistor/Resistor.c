@@ -12,7 +12,7 @@ void Resistor_Init(void)
         .sda_io_num = RESIS_SDA,
         .scl_io_num = RESIS_SCL,
         .flags.enable_internal_pullup = false,
-        .trans_queue_depth = 8
+        .trans_queue_depth = 8,
     };
     i2c_new_master_bus(&bus_config, &bus_handle);
 
@@ -28,11 +28,7 @@ void Resistor_Init(void)
 void set_resis_level(uint8_t data)
 {
     uint8_t buf[2] = {0x00, data};
-    i2c_master_transmit_multi_buffer_info_t _ = {
-        .buffer_size = 2,
-        .write_buffer = buf
-    };
-    i2c_master_multi_buffer_transmit(dev_handle, &_, sizeof(_), 10);
+    i2c_master_transmit(dev_handle, buf, 2, 10);
 }
 
 void set_resis_level_by_percent(uint8_t percent_data)
