@@ -1,0 +1,46 @@
+menu "Wi-Fi Config"
+    config WIFI_SSID
+        string "WiFi SSID"
+        default "myssid"
+    config WIFI_PASSWORD
+        string "WiFi Password"
+        default "mypassword"
+
+    choice __WIFI_SCAN_AUTH_MODE_THRESHOLD
+        prompt "WiFi Scan auth mode threshold"
+        default WIFI_AUTH_WPA_WPA2_PSK
+
+        config WIFI_AUTH_OPEN
+            bool "OPEN"
+        config WIFI_AUTH_WEP
+            bool "WEP"
+        config WIFI_AUTH_WPA_PSK
+            bool "WPA PSK"
+        config WIFI_AUTH_WPA2_PSK
+            bool "WPA2 PSK"
+        config WIFI_AUTH_WPA_WPA2_PSK
+            bool "WPA WPA2 PSK"
+        config WIFI_AUTH_WPA2_ENTERPRISE
+            bool "WPA2 ENTERPRISE"
+        config WIFI_AUTH_WPA3_PSK
+            bool "WPA3 PSK"
+        config WIFI_AUTH_WPA2_WPA3_PSK
+            bool "WPA2 WPA3 PSK"
+        config WIFI_AUTH_WAPI_PSK
+            bool "WAPI PSK"
+
+
+        
+    endchoice
+    config WIFI_SCAN_AUTH_MODE_THRESHOLD
+        int
+        default 0 if WIFI_AUTH_OPEN
+        default 1 if WIFI_AUTH_WEP
+        default 2 if WIFI_AUTH_WPA_PSK
+        default 3 if WIFI_AUTH_WPA2_PSK
+        default 4 if WIFI_AUTH_WPA_WPA2_PSK
+        default 5 if WIFI_AUTH_WPA2_ENTERPRISE
+        default 6 if WIFI_AUTH_WPA3_PSK
+        default 7 if WIFI_AUTH_WPA2_WPA3_PSK
+        default 8 if WIFI_AUTH_WAPI_PSK
+endmenu

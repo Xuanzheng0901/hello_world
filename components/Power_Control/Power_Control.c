@@ -4,7 +4,7 @@ static const char* TAG = "POWER_CONTROL";
 static bool P_status = 0, N_status = 1; 
 
 /*
-    @brief +18V电源开关,拉高断开,拉低闭合
+*   @brief +18V电源开关,拉高断开,拉低闭合
 */
 void Pwr_ctrl_P(bool level) //+18V
 {
@@ -35,7 +35,7 @@ void Pwr_ctrl_Init(void)
     gpio_config(&io_conf);
     io_conf.pin_bit_mask = 1ULL<<N_SWI;
     gpio_config(&io_conf);
-    Pwr_ctrl_P(0);
-    Pwr_ctrl_N(0);
+    Pwr_ctrl_P(1);
+    Pwr_ctrl_N(1);
     ESP_LOGI(TAG, "电源控制初始化完成");
 }
