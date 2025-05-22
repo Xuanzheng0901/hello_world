@@ -1,5 +1,6 @@
 #ifndef __WIFI_H
 #define __WIFI_H
+
 #include <stdio.h>
 #include <string.h>
 #include "freertos/FreeRTOS.h"
@@ -9,7 +10,9 @@
 #include "esp_log.h"
 #include "sdkconfig.h"
 #include <esp_mac.h>
+#include "HTTP.h"
+#include "WIFI_pwdinfo.h"
 
-void wifi_init(void);
+void WIFI_Init(void);
 
 #endif
