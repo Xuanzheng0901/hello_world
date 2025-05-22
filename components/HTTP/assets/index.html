@@ -30,6 +30,13 @@
       color: #333;
     }
 
+    .temperature-display {
+      font-size: 20px;
+      font-weight: bold;
+      color: #e67e22;
+      margin-bottom: 10px;
+    }
+
     input[type="range"] {
       width: 100%;
       margin: 20px 0;
@@ -57,12 +64,12 @@
     }
 
     .switch-on {
-      background-color: #28a745; /* 绿色 */
+      background-color: #28a745;
       color: white;
     }
 
     .switch-off {
-      background-color: #6c757d; /* 灰色 */
+      background-color: #6c757d;
       color: white;
     }
 
@@ -91,6 +98,8 @@
 </head>
 <body>
   <div class="container">
+    <div class="temperature-display" id="temperature">温度：-- °C</div>
+
     <h2>音量调整</h2>
     <div class="value-display" id="valueDisplay">0</div>
     <input type="range" min="0" max="255" value="0" id="slider" />
@@ -114,6 +123,7 @@
     const slider = document.getElementById("slider");
     const valueDisplay = document.getElementById("valueDisplay");
     const statusMsg = document.getElementById("statusMsg");
+    const temperatureEl = document.getElementById("temperature");
 
     const btnPlus = document.getElementById("btnPlus");
     const btnMinus = document.getElementById("btnMinus");
@@ -140,11 +150,7 @@
         body: value
       })
       .then(response => {
-        if (response.ok) {
-          statusMsg.textContent = "发送成功！";
-        } else {
-          statusMsg.textContent = "发送失败：" + response.status;
-        }
+        statusMsg.textContent = response.ok ? "发送成功！" : "发送失败：" + response.status;
       })
       .catch(error => {
         statusMsg.textContent = "请求错误：" + error;
@@ -206,11 +212,32 @@
       fetchSwitchState("-", val => stateMinus = val);
     }
 
-    // 初始化加载
-    window.onload = initStates;
+    // 获取温度
+    function fetchTemperature() {
+      fetch(`${baseURL}/temp`)
+        .then(res => res.text())
+        .then(text => {
+          const temp = parseFloat(text);
+          if (!isNaN(temp)) {
+            temperatureEl.textContent = `温度：${temp.toFixed(2)} °C`;
+          } else {
+            temperatureEl.textContent = "温度：-- °C";
+          }
+        })
+        .catch(() => {
+          temperatureEl.textContent = "温度：获取失败";
+        });
+    }
 
-    // 每10秒刷新状态
-    setInterval(initStates, 10000);
+    // 初始化加载
+    window.onload = () => {
+      initStates();
+      fetchTemperature();
+    };
+
+    // 定时刷新状态和温度
+    setInterval(initStates, 10000);     // 每10秒更新开关状态
+    setInterval(fetchTemperature, 1000); // 每1秒更新温度
   </script>
 </body>
 </html>

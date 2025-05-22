@@ -3,7 +3,6 @@
 #include "lwip/netdb.h"
 #include "cJSON.h"
 
-static const char* TAG = "HTTP";
 extern char ipv6_addr[40];
 extern EventGroupHandle_t wifi_group;
 
@@ -28,9 +27,6 @@ const char *cf_cert = "-----BEGIN CERTIFICATE-----\n"
 "8RqZ7a2CPsgRbuvTPBwcOMBBmuFeU88+FSBX6+7iP0il8b4Z0QFqIwwMHfs/L6K1\n"
 "vepuoxtGzi4CZ68zJpiq1UvSqTbFJjtbD4seiMHl\n"
 "-----END CERTIFICATE-----";
-
-
-static char buffer[8192];
 
 static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 {
@@ -60,7 +56,7 @@ void update_dns_record(void)
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
     esp_http_client_set_method(client, HTTP_METHOD_PUT);
-    esp_http_client_set_header(client, "Authorization", "Bearer " token);
+    esp_http_client_set_header(client, "Authorization", "Bearer " cf_token);
     esp_http_client_set_header(client, "Content-Type", "application/json");
     esp_http_client_set_header(client, "User-Agent", "ESP32-DDNS/1.0");
     esp_http_client_set_post_field(client, post_data, strlen(post_data));

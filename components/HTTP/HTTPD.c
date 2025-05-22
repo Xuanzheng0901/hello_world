@@ -1,6 +1,7 @@
 #include "HTTP.h"
 
 extern bool power_status[2];
+extern float s_temperature;
 
 extern const uint8_t index_html_start[] asm("_binary_index_html_gz_start");
 extern const uint8_t index_html_end[]   asm("_binary_index_html_gz_end");
@@ -22,8 +23,15 @@ esp_err_t get_handler(httpd_req_t *req)
 esp_err_t get_power_info(httpd_req_t *req)
 {
     char buf = (char)power_status[strcmp(req->uri, "/pwrinfo/+") == 0 ? 0 : 1] + '0';
-    // ESP_LOGI(TAG, "%s", req->uri);
     httpd_resp_send(req, &buf, 1);
+    return ESP_OK;
+}
+esp_err_t get_temp_info(httpd_req_t *req)
+{
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.2f", s_temperature);
+    ESP_LOGI("TEMP", "TEMP INFO GOT");
+    httpd_resp_send(req, buf, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
@@ -91,6 +99,12 @@ void HTTP_Init(void)
         .handler = get_power_info,
         .user_ctx  = NULL
     };
+    const httpd_uri_t get_temp = {
+        .uri = "/temp",
+        .method = HTTP_GET,
+        .handler = get_temp_info,
+        .user_ctx  = NULL
+    };
     const httpd_uri_t post = {
         .uri = "/res",
         .method = HTTP_POST,
@@ -107,5 +121,6 @@ void HTTP_Init(void)
     httpd_register_uri_handler(server, &get_icon);
     httpd_register_uri_handler(server, &post);
     httpd_register_uri_handler(server, &get_power);
+    httpd_register_uri_handler(server, &get_temp);
     httpd_register_uri_handler(server, &post_pwr_ctr);
 }
