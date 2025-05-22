@@ -9,14 +9,16 @@ EventGroupHandle_t wifi_group;
 static void netif_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
 {
     if(event_base == WIFI_EVENT)
+    {
         if(event_id == WIFI_EVENT_AP_STACONNECTED)
             ESP_LOGI(TAG, "Station "MACSTR" joined, AID=%d", MAC2STR(((wifi_event_ap_stadisconnected_t *)event_data)->mac), ((wifi_event_ap_stadisconnected_t *) event_data)->aid);
         else if (event_id == WIFI_EVENT_STA_START || event_id == WIFI_EVENT_STA_DISCONNECTED)
             esp_wifi_connect();
         else if(event_id == WIFI_EVENT_STA_CONNECTED)
             esp_netif_create_ip6_linklocal(netif_handle_sta);
-
+    }
     else if(event_base == IP_EVENT) //打印ip
+    {
         if(event_id == IP_EVENT_STA_GOT_IP)
         {
             ip_event_got_ip_t *data = (ip_event_got_ip_t *)event_data;
@@ -33,7 +35,7 @@ static void netif_event_handler(void* arg, esp_event_base_t event_base, int32_t 
                 ESP_LOGI(TAG, "%s", ipv6_addr);
             }
         }
-
+    }
 }
 
 void wifi_sta_init(void)
