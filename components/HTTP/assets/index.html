@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>欢迎使用</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f4f7f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #ffffff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin: 20px 0;
+    }
+
+    .value-display {
+      font-size: 24px;
+      font-weight: bold;
+      color: #007acc;
+    }
+
+    button {
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button:active {
+      transform: scale(1.05);
+    }
+
+    .switch-on {
+      background-color: #28a745; /* 绿色 */
+      color: white;
+    }
+
+    .switch-off {
+      background-color: #6c757d; /* 灰色 */
+      color: white;
+    }
+
+    .confirm-btn {
+      background-color: #007acc;
+      color: white;
+      transition: background-color 0.3s;
+    }
+
+    .confirm-btn:hover {
+      background-color: #005f99;
+    }
+
+    .status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .switch-status {
+      margin: 8px 0 20px;
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>音量调整</h2>
+    <div class="value-display" id="valueDisplay">0</div>
+    <input type="range" min="0" max="255" value="0" id="slider" />
+    <button class="confirm-btn" onclick="sendValue()">确认</button>
+    <div class="status" id="statusMsg"></div>
+
+    <h2 style="margin-top: 40px;">电路控制</h2>
+
+    <div>
+      <button id="btnPlus" class="switch-off" onclick="toggleSwitch('+')">加载中...</button>
+      <div id="statusPlus" class="switch-status">电路 + 状态：未知</div>
+    </div>
+
+    <div>
+      <button id="btnMinus" class="switch-off" onclick="toggleSwitch('-')">加载中...</button>
+      <div id="statusMinus" class="switch-status">电路 - 状态：未知</div>
+    </div>
+  </div>
+
+  <script>
+    const slider = document.getElementById("slider");
+    const valueDisplay = document.getElementById("valueDisplay");
+    const statusMsg = document.getElementById("statusMsg");
+
+    const btnPlus = document.getElementById("btnPlus");
+    const btnMinus = document.getElementById("btnMinus");
+    const statusPlus = document.getElementById("statusPlus");
+    const statusMinus = document.getElementById("statusMinus");
+
+    const baseURL = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
+
+    let statePlus = false;
+    let stateMinus = false;
+
+    slider.addEventListener("input", () => {
+      valueDisplay.textContent = slider.value;
+    });
+
+    function sendValue() {
+      const value = slider.value;
+      statusMsg.textContent = "发送中...";
+      fetch(`${baseURL}/res`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain"
+        },
+        body: value
+      })
+      .then(response => {
+        if (response.ok) {
+          statusMsg.textContent = "发送成功！";
+        } else {
+          statusMsg.textContent = "发送失败：" + response.status;
+        }
+      })
+      .catch(error => {
+        statusMsg.textContent = "请求错误：" + error;
+      });
+    }
+
+    function updateUI(type, isOn) {
+      const label = type === "+" ? "电路 +" : "电路 -";
+      const button = type === "+" ? btnPlus : btnMinus;
+      const status = type === "+" ? statusPlus : statusMinus;
+
+      button.textContent = isOn ? "点击关闭" : "点击开启";
+      status.textContent = `${label} 状态：${isOn ? "开启" : "关闭"}`;
+
+      button.classList.remove("switch-on", "switch-off");
+      button.classList.add(isOn ? "switch-on" : "switch-off");
+    }
+
+    function fetchSwitchState(path, callback) {
+      fetch(`${baseURL}/pwrinfo/${path}`)
+        .then(res => res.text())
+        .then(text => {
+          const isOn = text.trim() === "1";
+          callback(isOn);
+          updateUI(path, isOn);
+        })
+        .catch(() => {
+          updateUI(path, false);
+        });
+    }
+
+    function toggleSwitch(type) {
+      const isPlus = type === "+";
+      const currentState = isPlus ? statePlus : stateMinus;
+      const newState = !currentState;
+
+      fetch(`${baseURL}/pwrctrl/${type}`, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: newState ? "1" : "0"
+      })
+      .then(res => {
+        if (res.ok) {
+          fetchSwitchState(type, isOn => {
+            if (isPlus) statePlus = isOn;
+            else stateMinus = isOn;
+          });
+        } else {
+          alert(`控制失败：${res.status}`);
+        }
+      })
+      .catch(err => {
+        alert("请求错误：" + err);
+      });
+    }
+
+    function initStates() {
+      fetchSwitchState("+", val => statePlus = val);
+      fetchSwitchState("-", val => stateMinus = val);
+    }
+
+    // 初始化加载
+    window.onload = initStates;
+
+    // 每10秒刷新状态
+    setInterval(initStates, 10000);
+  </script>
+</body>
+</html>
