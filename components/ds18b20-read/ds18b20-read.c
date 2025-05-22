@@ -2,10 +2,8 @@
 
 #define ONEWIRE_BUS_GPIO    11
 
-static int s_ds18b20_device_num = 0;
-static float s_temperature = 0.0;
-static ds18b20_device_handle_t s_ds18b20s[1];
-
+float s_temperature = 0.0;
+static ds18b20_device_handle_t s_ds18b20s;
 static const char *TAG = "DS18B20";
 
 static void sensor_detect(void)
@@ -30,10 +28,9 @@ static void sensor_detect(void)
         if (search_result == ESP_OK)
         {
             ds18b20_config_t ds_cfg = {};
-            if(ds18b20_new_device(&next_onewire_device, &ds_cfg, &s_ds18b20s[s_ds18b20_device_num]) == ESP_OK)
+            if(ds18b20_new_device(&next_onewire_device, &ds_cfg, &s_ds18b20s) == ESP_OK)
             {
-                ESP_LOGI(TAG, "Found a DS18B20[%d], address: %016llX", s_ds18b20_device_num, next_onewire_device.address);
-                s_ds18b20_device_num++;
+                ESP_LOGI(TAG, "Found a DS18B20, address: %016llX", next_onewire_device.address);
             }
             else
             {
@@ -43,7 +40,7 @@ static void sensor_detect(void)
     }
     while(search_result != ESP_ERR_NOT_FOUND);
     ESP_ERROR_CHECK(onewire_del_device_iter(iter));
-    ESP_LOGI(TAG, "Searching done, %d DS18B20 device(s) found", s_ds18b20_device_num);
+    ESP_LOGI(TAG, "Searching done, 1 DS18B20 device found");
 }
 
 void sensor_readTask(void *pvParameters)
@@ -51,9 +48,13 @@ void sensor_readTask(void *pvParameters)
     sensor_detect();
     while (1)
     {
-        ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion(s_ds18b20s[0]));
-        ESP_ERROR_CHECK(ds18b20_get_temperature(s_ds18b20s[0], &s_temperature));
+        ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion(s_ds18b20s));
+        ESP_ERROR_CHECK(ds18b20_get_temperature(s_ds18b20s, &s_temperature));
         ESP_LOGI(TAG, "temperature read from DS18B20: %.2fC", s_temperature);
+        if(s_temperature >= 85.00)
+        {
+            
+        }
         vTaskDelay(300 / portTICK_PERIOD_MS);
     }
 }
