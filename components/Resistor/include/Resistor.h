@@ -1,15 +1,14 @@
 #ifndef __RESIS_H
 #define __RESIS_H
 
-#include "driver/i2c_master.h"
-//#include "driver/i2c.h"
-#include "driver/gpio.h"
 #include <stdio.h>
 #include "esp_log.h"
+#include "driver/spi_master.h"
 #include "freertos/FreeRTOS.h"
 
-#define RESIS_SDA 18
-#define RESIS_SCL 17
+#define RESIS_SDA 16
+#define RESIS_SCL 15
+#define RESIS_CS  14
 
 extern uint8_t wiper_pos;
 
