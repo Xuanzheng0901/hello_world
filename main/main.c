@@ -5,14 +5,16 @@
 #include "Power_Control.h"
 #include "WIFI.h"
 #include "HTTP.h"
+#include "temp_sensor.h"
 
 void app_main(void)
 {
-    wifi_init();
+    WIFI_Init();
     HTTP_Init();
     Resistor_Init();
     Pwr_ctrl_Init();
     OLED_Init();
     ADC_Init();
-    xTaskCreatePinnedToCore(adc_read_task, "adc_read_task", 16384, NULL, 5, NULL, 1);
+    //DS18B20_Init();
+    //update_dns_record();
 }
