@@ -6,6 +6,7 @@
 #include "WIFI.h"
 #include "HTTP.h"
 #include "temp_sensor.h"
+#include "LED.h"
 
 void app_main(void)
 {
@@ -15,6 +16,7 @@ void app_main(void)
     Pwr_ctrl_Init();
     OLED_Init();
     ADC_Init();
+    LED_Init();
     //DS18B20_Init();
     //update_dns_record();
 }
