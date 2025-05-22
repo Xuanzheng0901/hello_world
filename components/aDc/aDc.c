@@ -3,34 +3,34 @@
 #define WARNING_VOLTAGE_H   3200
 #define WARNING_VOLTAGE_L   2600
 
-static adc_continuous_handle_t adc_handle = NULL;
-extern bool power_status[2];
 static const char *TAG = "ADC";
+static adc_continuous_handle_t adc_handle = NULL;
+
+extern bool power_status[2];
+
 static uint8_t opt;
+uint8_t warning_count = 0;
 
 void Pwr_Stop(void* arg)
 {
     uint8_t opt = *(uint8_t*)arg;
-    gpio_set_level(21, 1);
-
+    vTaskDelay(opt+1);
+    warning_count |= (((uint8_t)1) << opt);
+    ESP_LOGI("Warning_count", "%d", warning_count);
     opt ? Pwr_ctrl_N(0) : Pwr_ctrl_P(0);
 
     while(gpio_get_level(40) && power_status[opt] == 0)
         vTaskDelay(10);
             
-
     opt ? Pwr_ctrl_N(1) : Pwr_ctrl_P(1);
-    gpio_set_level(21, 0);
+    vTaskDelay(opt+1);
+    warning_count &= ~(((uint8_t)1) << opt);
     vTaskDelete(NULL);
 }
 
-
-
 void adc_read_task(void *pvParameters)
 {
-    ADC_Init();
     esp_err_t ret;
-    
     uint8_t convert_result[READ_LEN] = {0};
     static adc_digi_output_data_t *read_data[8];
     uint16_t curr_n_count = 0, curr_p_count = 0;
@@ -64,7 +64,7 @@ void adc_read_task(void *pvParameters)
                         if(curr_n_count == 128)
                         {
                             temp_curr_sum_n /= 128.0;
-                            ESP_LOGI("CURR_N", "Current current: %ld", (uint32_t)temp_curr_sum_n);
+                            //ESP_LOGI("CURR_N", "Current current: %ld", (uint32_t)temp_curr_sum_n);
                             if((uint32_t)temp_curr_sum_n >= 3350 && power_status[POWER_N])
                             {
                                 ESP_LOGI(TAG, "P:%ld", (uint32_t)temp_curr_sum_n);
@@ -111,11 +111,6 @@ void ADC_Init(void)
         .pull_up_en = 1,
         .pin_bit_mask = 1ULL<<40
     };
-    gpio_config(&io_conf);
-    io_conf.mode = GPIO_MODE_OUTPUT;
-    io_conf.pull_up_en = 1;
-    io_conf.pull_down_en = 0;
-    io_conf.pin_bit_mask = 1ULL << 21;
     gpio_config(&io_conf);
     adc_continuous_handle_cfg_t adc_config = {
         .max_store_buf_size = 4096,
