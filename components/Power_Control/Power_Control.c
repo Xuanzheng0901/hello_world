@@ -1,7 +1,7 @@
 #include "Power_Control.h"
 
 static const char* TAG = "POWER_CONTROL";
-static bool P_status = 0, N_status = 1; 
+bool power_status[2];
 
 /*
 *   @brief +18V电源开关,拉高断开,拉低闭合
@@ -9,8 +9,8 @@ static bool P_status = 0, N_status = 1;
 void Pwr_ctrl_P(bool level) //+18V
 {
     gpio_set_level_mod(P_SWI, level);
-    P_status = level;
-    ESP_LOGI(TAG, "+18V电源已%s", level ? "断开" : "导通");
+    power_status[POWER_P] = level;
+    ESP_LOGI(TAG, "+18V电源已%s", level ?  "导通": "断开");
 }
 
 /*
@@ -18,16 +18,16 @@ void Pwr_ctrl_P(bool level) //+18V
 */
 void Pwr_ctrl_N(bool level) //-18V
 {
-    gpio_set_level_mod(P_SWI, level);
-    N_status = level;
-    ESP_LOGI(TAG, "-18V电源已%s", level ? "断开" : "导通");
+    gpio_set_level_mod(N_SWI, level);
+    power_status[POWER_N] = level;
+    ESP_LOGI(TAG, "-18V电源已%s", level ? "导通" : "断开");
 }
 
 void Pwr_ctrl_Init(void)
 {
     gpio_config_t io_conf = {
         .intr_type = GPIO_INTR_DISABLE,
-        .mode = GPIO_MODE_OUTPUT_OD,
+        .mode = GPIO_MODE_OUTPUT,
         .pull_down_en = 0,
         .pull_up_en = 1,
         .pin_bit_mask = 1ULL<<P_SWI
