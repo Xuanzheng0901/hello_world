@@ -9,6 +9,7 @@
 #include "math.h"
 #include "OLED.h"
 #include "Power_Control.h"
+#include "driver/gpio.h"
 
 #define READ_LEN  4096
 #define AUDIO_CHANNEL         ADC_CHANNEL_1
@@ -16,6 +17,5 @@
 #define CURR_DETC_CHANNEL_N   ADC_CHANNEL_8
 
 void ADC_Init(void);
-void adc_read_task(void *pvParameters);
 
 #endif
