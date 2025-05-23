@@ -10,13 +10,15 @@
 
 void app_main(void)
 {
-    WIFI_Init();
+    wifi_init();
     HTTP_Init();
-    Resistor_Init();
+    
+    LED_Init();
     Pwr_ctrl_Init();
+    Resistor_Init();
     OLED_Init();
     ADC_Init();
-    LED_Init();
     //DS18B20_Init();
+    
     //update_dns_record();
 }
