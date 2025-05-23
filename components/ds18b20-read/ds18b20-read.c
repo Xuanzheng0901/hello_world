@@ -2,6 +2,10 @@
 
 #define ONEWIRE_BUS_GPIO    11
 
+extern uint8_t warning_count;
+extern bool power_status[2];
+extern void Pwr_Stop(void* arg);
+
 float s_temperature = 0.0;
 static ds18b20_device_handle_t s_ds18b20s;
 static const char *TAG = "DS18B20";
@@ -46,20 +50,35 @@ static void sensor_detect(void)
 void sensor_readTask(void *pvParameters)
 {
     sensor_detect();
+    static uint8_t opt = 0;
     while (1)
     {
         ESP_ERROR_CHECK(ds18b20_trigger_temperature_conversion(s_ds18b20s));
         ESP_ERROR_CHECK(ds18b20_get_temperature(s_ds18b20s, &s_temperature));
         ESP_LOGI(TAG, "temperature read from DS18B20: %.2fC", s_temperature);
+        if(s_temperature >= 60.00)
+            warning_count |= 0x04;
+        else
+            warning_count &= (warning_count & 0x04 ? (~0x04) : 0x0F);
+
         if(s_temperature >= 85.00)
         {
-            
+            warning_count |= 0x08;
+            opt = 0;
+            if(power_status[opt])
+                xTaskCreate(Pwr_Stop, "关闭电源", 4096, &opt, 5, NULL);
+
+            opt = 1;
+            if(power_status[opt])
+                xTaskCreate(Pwr_Stop, "关闭电源", 4096, &opt, 5, NULL);
         }
+        else
+            warning_count &= (warning_count & 0x08 ? (~0x08) : 0x0F);
         vTaskDelay(300 / portTICK_PERIOD_MS);
     }
 }
 
 void DS18B20_Init(void)
 {
-    xTaskCreate(&sensor_readTask, "sensor_readTask", 4096, NULL, 5, NULL);
+    xTaskCreate(&sensor_readTask, "sensor_readTask", 8192, NULL, 5, NULL);
 }
