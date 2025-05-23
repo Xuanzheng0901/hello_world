@@ -8,7 +8,7 @@
 
 #define RESIS_SDA 16
 #define RESIS_SCL 15
-#define RESIS_CS  14
+#define RESIS_CS  12
 
 extern uint8_t wiper_pos;
 

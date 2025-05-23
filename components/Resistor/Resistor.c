@@ -3,14 +3,15 @@
 static spi_device_handle_t resis_spi_handle = NULL;
 uint8_t wiper_pos = 0x80;
 
-void set_resis_level(uint8_t data)
+void set_resis_level(uint8_t zuzhi)
 {
-	uint8_t buf[2] = {0x11, 0xFF - data};
+	uint8_t buf[2] = {0x11, 0xFF - zuzhi};
 	static spi_transaction_t _;	
 	_.length = 16;
 	_.tx_buffer = buf;
 	spi_device_polling_transmit(resis_spi_handle, &_);
-	wiper_pos = data;
+	wiper_pos = 0xFF - zuzhi;
+	ESP_LOGI("Resistor", "Current volume: %d", wiper_pos);
 }
 
 void set_resis_level_by_percent(uint8_t percent_data)
