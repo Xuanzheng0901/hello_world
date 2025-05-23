@@ -14,5 +14,6 @@
 #include "WIFI_pwdinfo.h"
 
 void WIFI_Init(void);
+esp_err_t wifi_init(void);
 
 #endif

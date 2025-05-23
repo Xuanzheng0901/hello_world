@@ -4,7 +4,7 @@ static const char* TAG = "WiFi-Sta";
 static esp_netif_t *netif_handle_sta = NULL, *netif_handle_ap = NULL;
 char ipv6_addr[40];
 
-EventGroupHandle_t wifi_group;
+//EventGroupHandle_t wifi_group;
 
 static void netif_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data)
 {
@@ -15,7 +15,14 @@ static void netif_event_handler(void* arg, esp_event_base_t event_base, int32_t 
         else if (event_id == WIFI_EVENT_STA_START || event_id == WIFI_EVENT_STA_DISCONNECTED)
             esp_wifi_connect();
         else if(event_id == WIFI_EVENT_STA_CONNECTED)
-            esp_netif_create_ip6_linklocal(netif_handle_sta);
+        {
+            esp_ip6_addr_t ipv6;
+            esp_netif_get_ip6_linklocal(netif_handle_sta, &ipv6);
+            ESP_LOGI(TAG, IPV6STR"", IPV62STR(ipv6));
+            //ESP_ERROR_CHECK(esp_netif_create_ip6_linklocal(netif_handle_sta));
+            ESP_LOGI(TAG, IPV6STR"", IPV62STR(ipv6));
+        }
+            
     }
     else if(event_base == IP_EVENT) //打印ip
     {
@@ -31,9 +38,9 @@ static void netif_event_handler(void* arg, esp_event_base_t event_base, int32_t 
             if(ipv6_type == ESP_IP6_ADDR_IS_GLOBAL)
             {
                 snprintf(ipv6_addr, sizeof(ipv6_addr), IPV6STR, IPV62STR(data6->ip6_info.ip));
-                xEventGroupSetBits(wifi_group, 2);
-                ESP_LOGI(TAG, "%s", ipv6_addr);
+                //xEventGroupSetBits(wifi_group, 2);
             }
+            ESP_LOGI(TAG, IPV6STR": type:%d", IPV62STR(data6->ip6_info.ip), ipv6_type);
         }
     }
 }
@@ -73,9 +80,8 @@ void wifi_ap_init(void)
 void WIFI_Init(void)
 {
     nvs_flash_init();
-
     esp_event_loop_create_default();
-    wifi_group = xEventGroupCreate();
+    
     esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &netif_event_handler, NULL);
     esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &netif_event_handler, NULL);
 
@@ -86,7 +92,7 @@ void WIFI_Init(void)
     wifi_sta_init();
     wifi_ap_init();
 
-    esp_wifi_set_mode(WIFI_MODE_APSTA);
+    esp_wifi_set_mode(WIFI_MODE_STA);
     esp_netif_set_default_netif(netif_handle_sta);
-    esp_wifi_start();
+    
 }
