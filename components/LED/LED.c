@@ -58,7 +58,7 @@ void LED_Warning(void *arg)
             while(warning_count)
             {
                 value = value ? 0 : 255;
-                vTaskDelay(100 / warning_count);
+                vTaskDelay(100 / warning_count+1);
                 for(uint8_t i = 0; i < 3; i++)
                 {
                     if(1 << i & warning_count)
@@ -78,7 +78,7 @@ void LED_Init(void)
     ledc_timer_config_t timer_config = {
         .clk_cfg = LEDC_AUTO_CLK,
         .duty_resolution = LEDC_TIMER_9_BIT,
-        .freq_hz = 1024,
+        .freq_hz = 2000,
         .speed_mode = LEDC_LOW_SPEED_MODE,
         .timer_num = LEDC_TIMER_0
     };

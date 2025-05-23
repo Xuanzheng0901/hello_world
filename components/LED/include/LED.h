@@ -2,7 +2,7 @@
 #define __LED_H
 
 #define LED_R 21
-#define LED_G 12
+#define LED_G 14
 #define LED_B 13
 
 #define LED_CHANNEL_R LEDC_CHANNEL_0
