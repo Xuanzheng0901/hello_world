@@ -1,40 +1,100 @@
 <!DOCTYPE html>
 <html lang="zh">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>欢迎使用</title>
-  <style>
+
+  <head>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>欢迎使用</title>
+    <style>
     body {
       font-family: "Segoe UI", sans-serif;
       background: #f4f7f9;
       display: flex;
+      flex-direction: column;
+      /* 垂直堆叠主容器 */
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
+      /* 最小高度保证内容居中 */
       margin: 0;
+      padding: 20px;
+      /* 页面内边距 */
+      box-sizing: border-box;
+      /* 边框盒模型 */
     }
 
-    .container {
+    .main-container {
+      /* 新增主容器，用于包裹两个独立面板 */
+      display: flex;
+      flex-direction: row;
+      /* 水平排列子面板 */
+      gap: 30px;
+      /* 面板之间的间距 */
+      width: 90%;
+      max-width: 960px;
+      flex-wrap: wrap;
+      /* 允许子面板换行 */
+      justify-content: center;
+      /* 居中对齐子面板 */
+    }
+
+    .panel-container {
+      /* 独立面板的通用样式 */
       background: #ffffff;
-      padding: 30px 40px;
       border-radius: 12px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      max-width: 400px;
-      width: 100%;
-    }
-
-    h2 {
+      padding: 20px;
+      flex: 1;
+      /* 让面板弹性伸缩 */
+      min-width: 300px;
+      /* 面板最小宽度 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       margin-bottom: 20px;
-      color: #333;
+      /* 垂直堆叠时的面板间距 */
     }
 
     .temperature-display {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: bold;
-      color: #e67e22;
       margin-bottom: 10px;
+      transition: color 0.5s ease;
+      text-align: center;
+      width: 100%;
+    }
+
+    .temp-normal {
+      color: #28a745;
+    }
+
+    /* 正常温度颜色 */
+    .temp-warn {
+      color: #f39c12;
+    }
+
+    /* 警告温度颜色 */
+    .temp-danger {
+      color: #e74c3c;
+    }
+
+    /* 危险温度颜色 */
+
+    #chartWrapper {
+      flex: 1;
+      width: 100%;
+      max-height: 80%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 100%;
+      display: block;
     }
 
     input[type="range"] {
@@ -42,11 +102,23 @@
       margin: 20px 0;
     }
 
-    .value-display {
-      font-size: 24px;
+    /* 将 .current-volume-display 和 .value-display 分开 */
+    .current-volume-display,
+    .target-volume-display {
+      font-size: 20px;
       font-weight: bold;
       color: #007acc;
+      text-align: center;
+      width: 100%;
+      margin-bottom: 10px;
     }
+
+    .current-volume-display {
+        font-size: 24px; /* 当前音量稍大一些 */
+        color: #34495e; /* 不同颜色区分 */
+        margin-bottom: 15px;
+    }
+
 
     button {
       border: none;
@@ -55,12 +127,12 @@
       border-radius: 6px;
       cursor: pointer;
       transition: background-color 0.3s, transform 0.1s;
-      width: 100%;
-      margin-top: 10px;
+      /* 统一按钮样式，不再使用flex:1 */
     }
 
     button:active {
       transform: scale(1.05);
+      /* 点击效果 */
     }
 
     .switch-on {
@@ -68,105 +140,358 @@
       color: white;
     }
 
+    /* 开启按钮颜色 */
     .switch-off {
       background-color: #6c757d;
       color: white;
     }
 
+    /* 关闭按钮颜色 */
     .confirm-btn {
       background-color: #007acc;
       color: white;
-      transition: background-color 0.3s;
     }
 
+    /* 确认按钮颜色 */
     .confirm-btn:hover {
       background-color: #005f99;
     }
 
-    .status {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #666;
-    }
+    /* 确认按钮悬停效果 */
 
+    .status,
     .switch-status {
-      margin: 8px 0 20px;
+      text-align: center;
+      margin: 8px 0;
       font-size: 14px;
       color: #333;
+      width: 100%;
     }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="temperature-display" id="temperature">温度：-- °C</div>
 
-    <h2>音量调整</h2>
-    <div class="value-display" id="valueDisplay">0</div>
-    <input type="range" min="0" max="255" value="0" id="slider" />
-    <button class="confirm-btn" onclick="sendValue()">确认</button>
-    <div class="status" id="statusMsg"></div>
+    /* 新增样式：用于包裹音量控制按钮的容器 */
+    .volume-controls-group {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      justify-content: center; /* 居中对齐按钮 */
+      margin-top: 10px; /* 与滑块的间距 */
+    }
 
-    <h2 style="margin-top: 40px;">电路控制</h2>
+    .volume-controls-group button {
+      flex: 1; /* 让确认按钮和自动控制按钮弹性伸缩 */
+      max-width: 120px; /* 限制按钮最大宽度 */
+    }
 
-    <div>
-      <button id="btnPlus" class="switch-off" onclick="toggleSwitch('+')">加载中...</button>
-      <div id="statusPlus" class="switch-status">电路 + 状态：未知</div>
+    /* 新增样式：用于包裹两个开关按钮的容器 */
+    .switch-buttons-group {
+      display: flex;
+      /* 使用Flexbox布局 */
+      gap: 10px;
+      /* 按钮之间增加间距 */
+      width: 100%;
+      /* 宽度占满父容器 */
+      margin-top: 10px;
+      /* 与上方标题的间距 */
+    }
+
+    /* 为每个开关按钮的父div设置Flex项 */
+    .switch-buttons-group>div {
+      flex: 1;
+      /* 让每个按钮及其状态文本占据相同空间 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 自动控制按钮的特定样式 */
+    #btnAutoControl {
+        flex: 1; /* 占据可用空间 */
+        margin: 0; /* 移除按钮的左右间距，由父容器的gap控制 */
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+      }
+
+      /* 小屏幕下垂直堆叠 */
+      .panel-container {
+        min-width: unset;
+        width: 100%;
+      }
+
+      /* 小屏幕下面板宽度占满 */
+      #chartWrapper {
+        max-height: 300px;
+      }
+
+      /* 小屏幕下图表高度 */
+      .switch-buttons-group {
+        flex-direction: column;
+      }
+
+      /* 小屏幕下按钮垂直堆叠 */
+      .switch-buttons-group>div {
+        margin: 0;
+      }
+
+      /* 移除小屏幕下按钮的左右间距 */
+
+      .volume-controls-group {
+        flex-direction: column; /* 小屏幕下音量控制按钮垂直堆叠 */
+        align-items: center;
+      }
+      .volume-controls-group button {
+        width: 100%; /* 小屏幕下按钮宽度占满 */
+        max-width: unset; /* 移除最大宽度限制 */
+        margin-bottom: 10px; /* 垂直堆叠时的间距 */
+      }
+    }
+    </style>
+  </head>
+
+  <body>
+    <div class="main-container">
+      <div class="panel-container">
+        <div id="chartWrapper">
+          <div class="temperature-display temp-normal" id="temperature">温度：--
+            °C</div>
+          <canvas id="tempChart"></canvas>
+        </div>
+      </div>
+
+      <div class="panel-container">
+        <h2>音量调整</h2>
+        <div class="current-volume-display" id="currentVolumeDisplay">当前音量：--</div>
+        <div class="target-volume-display" id="valueDisplay">目标音量：0</div>
+        <input type="range" min="0" max="255" value="0" id="slider" />
+        <div class="volume-controls-group">
+            <button class="confirm-btn" onclick="sendValue()">确认</button>
+            <button id="btnAutoControl" class="switch-off" onclick="toggleAutoControl()">自动控制：加载中...</button>
+        </div>
+        <div class="status" id="statusMsg"></div>
+        <div id="autoControlStatus" class="switch-status">自动控制状态：未知</div>
+
+
+        <h2 style="margin-top: 30px;">电路控制</h2>
+        <div class="switch-buttons-group">
+          <div>
+            <button id="btnPlus" class="switch-off" onclick="toggleSwitch('+')">加载中...</button>
+            <div id="statusPlus" class="switch-status">电路 + 状态：未知</div>
+          </div>
+          <div>
+            <button id="btnMinus" class="switch-off" onclick="toggleSwitch('-')">加载中...</button>
+            <div id="statusMinus" class="switch-status">电路 - 状态：未知</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div>
-      <button id="btnMinus" class="switch-off" onclick="toggleSwitch('-')">加载中...</button>
-      <div id="statusMinus" class="switch-status">电路 - 状态：未知</div>
-    </div>
-  </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <script>
-    const slider = document.getElementById("slider");
-    const valueDisplay = document.getElementById("valueDisplay");
-    const statusMsg = document.getElementById("statusMsg");
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
+
+    <script>
+    const baseURL = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
     const temperatureEl = document.getElementById("temperature");
-
+    const slider = document.getElementById("slider");
+    const valueDisplay = document.getElementById("valueDisplay"); // 目标音量显示
+    const currentVolumeDisplay = document.getElementById("currentVolumeDisplay"); // 新增：当前音量显示
+    const statusMsg = document.getElementById("statusMsg");
     const btnPlus = document.getElementById("btnPlus");
     const btnMinus = document.getElementById("btnMinus");
     const statusPlus = document.getElementById("statusPlus");
     const statusMinus = document.getElementById("statusMinus");
+    const btnAutoControl = document.getElementById("btnAutoControl");
+    const autoControlStatusEl = document.getElementById("autoControlStatus");
 
-    const baseURL = `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}`;
+    const tempCtx = document.getElementById("tempChart").getContext("2d");
+    let temperatureHistory = new Array(60).fill(null);
 
-    let statePlus = false;
-    let stateMinus = false;
+    const tempData = {
+      labels: Array.from({
+        length: 60
+      }, (_, i) => `${i}s`),
+      datasets: [{
+        label: "温度（°C）",
+        data: new Array(60).fill(null),
+        borderColor: "#e67e22",
+        backgroundColor: "rgba(230, 126, 34, 0.1)",
+        pointRadius: 3,
+        pointBackgroundColor: '#e67e22',
+        pointBorderColor: '#e67e22',
+        tension: 0.2
+      }]
+    };
 
-    slider.addEventListener("input", () => {
-      valueDisplay.textContent = slider.value;
+    const tempChart = new Chart(tempCtx, {
+      type: "line",
+      data: tempData,
+      options: {
+        animation: false,
+        maintainAspectRatio: false,
+        plugins: {
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'x'
+            },
+            zoom: {
+              wheel: {
+                enabled: true
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'x'
+            }
+          },
+          legend: {
+            display: true
+          }
+        },
+        scales: {
+          y: {
+            min: 0,
+            max: 100,
+            ticks: {
+              stepSize: 10
+            }
+          }
+        }
+      },
+      plugins: [Chart.registry.getPlugin('zoom')]
     });
+
+    function updateTemperatureColor(value) {
+      temperatureEl.classList.remove("temp-normal", "temp-warn", "temp-danger");
+      if (value > 85) temperatureEl.classList.add("temp-danger");
+      else if (value > 60) temperatureEl.classList.add("temp-warn");
+      else temperatureEl.classList.add("temp-normal");
+    }
+
+    function fetchTemperature() {
+      fetch(`${baseURL}/temp`)
+        .then(res => res.text())
+        .then(text => {
+          const temp = parseFloat(text);
+          if (!isNaN(temp)) {
+            temperatureEl.textContent = `温度：${temp.toFixed(1)} °C`;
+            updateTemperatureColor(temp);
+
+            temperatureHistory.unshift(temp);
+            if (temperatureHistory.length > 60) {
+              temperatureHistory.pop();
+            }
+
+            tempData.datasets[0].data.unshift(temp);
+            if (tempData.datasets[0].data.length > 60) {
+              tempData.datasets[0].data.pop();
+            }
+
+            tempData.datasets = tempData.datasets.filter(d => !d.metaLine);
+
+            const validTemps = temperatureHistory.filter(t => typeof t === 'number' && !isNaN(t));
+
+            if (validTemps.length > 0) {
+              const max = Math.max(...validTemps);
+              const min = Math.min(...validTemps);
+              const avg = validTemps.reduce((a, b) => a + b, 0) / validTemps.length;
+
+              const metaLine = (value, label, color) => ({
+                label: `${label} ${value.toFixed(1)}°C`,
+                data: new Array(tempData.labels.length).fill(value),
+                borderColor: color,
+                borderDash: [6, 6],
+                pointRadius: 0,
+                fill: false,
+                metaLine: true
+              });
+
+              tempData.datasets.push(
+                metaLine(max, '最大', '#e74c3c'),
+                metaLine(min, '最小', '#3498db'),
+                metaLine(avg, '平均', '#2ecc71')
+              );
+            }
+
+            tempChart.update();
+          }
+        })
+        .catch(() => {
+          temperatureEl.textContent = "温度：获取失败";
+        });
+    }
+
+    function fetchInitialVolume() {
+      fetch(`${baseURL}/respos`)
+        .then(res => res.text())
+        .then(text => {
+          const vol = parseInt(text.trim(), 10);
+          if (!isNaN(vol) && vol >= 0 && vol <= 255) {
+            currentVolumeDisplay.textContent = `当前音量：${vol}`; // 更新当前音量显示
+            // slider.value = vol; // 不再自动设置滑块值，滑块只表示用户将要设置的值
+            // valueDisplay.textContent = `目标音量：${vol}`; // 初始时保持一致，但用户调整滑块后会变化
+          }
+        })
+        .catch(error => {
+          console.error("获取音量失败:", error);
+          currentVolumeDisplay.textContent = "当前音量：获取失败"; // 显示当前音量获取失败
+        });
+    }
+
+    // 滑块调整时，只更新目标音量显示
+    slider.addEventListener("input", () => {
+      valueDisplay.textContent = `目标音量：${slider.value}`;
+    });
+
+    // 页面加载时，初始化目标音量为滑块的默认值
+    window.addEventListener("DOMContentLoaded", () => {
+        valueDisplay.textContent = `目标音量：${slider.value}`;
+    });
+
 
     function sendValue() {
       const value = slider.value;
       statusMsg.textContent = "发送中...";
       fetch(`${baseURL}/res`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain"
-        },
-        body: value
-      })
-      .then(response => {
-        statusMsg.textContent = response.ok ? "发送成功！" : "发送失败：" + response.status;
-      })
-      .catch(error => {
-        statusMsg.textContent = "请求错误：" + error;
-      });
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain"
+          },
+          body: value
+        })
+        .then(response => {
+          statusMsg.textContent = response.ok ? "发送成功！" : "发送失败：" + response.status;
+          if (response.ok) {
+            // 发送成功后，立即更新当前音量显示为发送的值
+            currentVolumeDisplay.textContent = `当前音量：${value}`;
+          }
+        })
+        .catch(error => {
+          statusMsg.textContent = "请求错误：" + error;
+        });
     }
 
+    let statePlus = false;
+    let stateMinus = false;
+    let autoControlOn = false; // 新增：自动控制状态
+
     function updateUI(type, isOn) {
-      const label = type === "+" ? "电路 +" : "电路 -";
-      const button = type === "+" ? btnPlus : btnMinus;
-      const status = type === "+" ? statusPlus : statusMinus;
-
-      button.textContent = isOn ? "点击关闭" : "点击开启";
-      status.textContent = `${label} 状态：${isOn ? "开启" : "关闭"}`;
-
-      button.classList.remove("switch-on", "switch-off");
-      button.classList.add(isOn ? "switch-on" : "switch-off");
+      if (type === 'auto') {
+        btnAutoControl.textContent = `自动控制：${isOn ? "开启" : "关闭"}`;
+        autoControlStatusEl.textContent = `自动控制状态：${isOn ? "开启" : "关闭"}`;
+        btnAutoControl.classList.remove("switch-on", "switch-off");
+        btnAutoControl.classList.add(isOn ? "switch-on" : "switch-off");
+      } else {
+        const label = type === "+" ? "电路 +" : "电路 -";
+        const button = type === "+" ? btnPlus : btnMinus;
+        const status = type === "+" ? statusPlus : statusMinus;
+        button.textContent = isOn ? "点击关闭" : "点击开启";
+        status.textContent = `${label} 状态：${isOn ? "开启" : "关闭"}`;
+        button.classList.remove("switch-on", "switch-off");
+        button.classList.add(isOn ? "switch-on" : "switch-off");
+      }
     }
 
     function fetchSwitchState(path, callback) {
@@ -178,8 +503,28 @@
           updateUI(path, isOn);
         })
         .catch(() => {
+          const button = path === "+" ? btnPlus : btnMinus;
+          const statusEl = path === "+" ? statusPlus : statusMinus;
+          button.textContent = "状态未知";
+          statusEl.textContent = (path === "+" ? "电路 +" : "电路 -") + " 状态：获取失败";
           updateUI(path, false);
         });
+    }
+
+    function fetchAutoControlState() {
+        fetch(`${baseURL}/auto_status`)
+            .then(res => res.text())
+            .then(text => {
+                const isOn = text.trim() === "1";
+                autoControlOn = isOn;
+                updateUI('auto', isOn);
+            })
+            .catch(error => {
+                console.error("获取自动控制状态失败:", error);
+                btnAutoControl.textContent = "自动控制：获取失败";
+                autoControlStatusEl.textContent = "自动控制状态：获取失败";
+                updateUI('auto', false);
+            });
     }
 
     function toggleSwitch(type) {
@@ -188,56 +533,70 @@
       const newState = !currentState;
 
       fetch(`${baseURL}/pwrctrl/${type}`, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain" },
-        body: newState ? "1" : "0"
-      })
-      .then(res => {
-        if (res.ok) {
-          fetchSwitchState(type, isOn => {
-            if (isPlus) statePlus = isOn;
-            else stateMinus = isOn;
-          });
-        } else {
-          alert(`控制失败：${res.status}`);
-        }
-      })
-      .catch(err => {
-        alert("请求错误：" + err);
-      });
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain"
+          },
+          body: newState ? "1" : "0"
+        })
+        .then(res => {
+          if (res.ok) {
+            fetchSwitchState(type, isOn => {
+              if (isPlus) statePlus = isOn;
+              else stateMinus = isOn;
+            });
+          } else {
+            alert(`控制失败：${res.status}`);
+            updateUI(type, currentState);
+          }
+        })
+        .catch(err => {
+          alert("请求错误：" + err);
+          updateUI(type, currentState);
+        });
     }
+
+    function toggleAutoControl() {
+        const newState = !autoControlOn;
+        btnAutoControl.textContent = "发送中...";
+        autoControlStatusEl.textContent = "自动控制状态：发送中...";
+
+        fetch(`${baseURL}/auto`, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: newState ? "1" : "0"
+        })
+        .then(response => {
+            if (response.ok) {
+                fetchAutoControlState(); // 发送成功后重新获取最新状态
+            } else {
+                alert(`自动控制失败：${response.status}`);
+                updateUI('auto', autoControlOn); // 恢复原状态
+            }
+        })
+        .catch(error => {
+            alert("自动控制请求错误：" + error);
+            updateUI('auto', autoControlOn); // 恢复原状态
+        });
+    }
+
 
     function initStates() {
       fetchSwitchState("+", val => statePlus = val);
       fetchSwitchState("-", val => stateMinus = val);
+      fetchAutoControlState(); // 初始化自动控制状态
     }
 
-    // 获取温度
-    function fetchTemperature() {
-      fetch(`${baseURL}/temp`)
-        .then(res => res.text())
-        .then(text => {
-          const temp = parseFloat(text);
-          if (!isNaN(temp)) {
-            temperatureEl.textContent = `温度：${temp.toFixed(2)} °C`;
-          } else {
-            temperatureEl.textContent = "温度：-- °C";
-          }
-        })
-        .catch(() => {
-          temperatureEl.textContent = "温度：获取失败";
-        });
-    }
-
-    // 初始化加载
     window.onload = () => {
-      initStates();
+      fetchInitialVolume(); // 页面加载时立即获取音量
+      initStates(); // 初始化所有开关状态，包括自动控制
       fetchTemperature();
     };
 
-    // 定时刷新状态和温度
-    setInterval(initStates, 10000);     // 每10秒更新开关状态
-    setInterval(fetchTemperature, 1000); // 每1秒更新温度
-  </script>
-</body>
+    setInterval(fetchInitialVolume, 1000); // 每1秒更新一次音量
+    setInterval(initStates, 10000); /* 每10秒更新一次开关和自动控制状态 */
+    setInterval(fetchTemperature, 1000); /* 每1秒更新一次温度 */
+    </script>
+  </body>
+
 </html>
