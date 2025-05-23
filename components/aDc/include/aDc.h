@@ -10,6 +10,7 @@
 #include "OLED.h"
 #include "Power_Control.h"
 #include "driver/gpio.h"
+#include "Resistor.h"
 
 #define READ_LEN  4096
 #define AUDIO_CHANNEL         ADC_CHANNEL_1
@@ -17,5 +18,6 @@
 #define CURR_DETC_CHANNEL_N   ADC_CHANNEL_8
 
 void ADC_Init(void);
+void Pwr_Stop(void* arg);
 
 #endif
